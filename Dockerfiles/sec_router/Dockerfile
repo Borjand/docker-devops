@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 
 # install app dependencies
 RUN apt-get update && apt-get install \
-    -y nano iproute2 iputils-ping tcpdump traceroute apt-utils dialog openssl strongswan wget
+    -y sudo nano iproute2 iputils-ping tcpdump traceroute apt-utils
 
 # install app
 #COPY hello.py /
