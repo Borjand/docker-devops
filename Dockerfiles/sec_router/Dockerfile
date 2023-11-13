@@ -2,11 +2,6 @@
 FROM ubuntu:22.04
 
 # install app dependencies
-RUN apt-get update && apt-get install \
-    -y sudo nano iproute2 iputils-ping tcpdump traceroute apt-utils
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install \
+    -y sudo nano iproute2 iputils-ping traceroute wireshark
 
-# install app
-#COPY hello.py /
-
-# final configuration
-#CMD flask run --host 0.0.0.0 --port 8000
