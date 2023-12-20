@@ -2,9 +2,8 @@
 FROM ubuntu:22.04
 
 # Actualiza el sistema e instala sudo
-RUN apt-get update && \
-    apt-get install -y sudo && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    nano sudo iproute2 iputils-ping tcpdump traceroute 
 
 # Crea un usuario llamado "student"
 RUN useradd -m -s /bin/bash student
