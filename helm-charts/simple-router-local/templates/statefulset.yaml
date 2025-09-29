@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "simple-router-local.fullname" . }}
+spec:
+  serviceName: {{ include "simple-router-local.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "simple-router-local.name" . }}
+  template:
+    metadata:
+      annotations:
+        k8s.v1.cni.cncf.io/networks: |
+          [{
+            "name": "tunnel-net",
+            "ips": [ "{{ .Values.net.tunnelIP }}" ]
+          }]
+      labels:
+        app: {{ include "simple-router-local.name" . }}
+    spec:
+      nodeName: {{ .Values.targetNode }}
+      containers:
+        - name: router
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            privileged: true
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "[INFO] Añadiendo ruta hacia red remota..."
+              ip route add {{ .Values.net.remoteSubnet }} via {{ .Values.net.peerIP }} dev net1;
+
+              echo "[INFO] Router simple-firewall en funcionamiento."
+              tail -f /dev/null

@@ -1,0 +1,17 @@
+fullnameOverride: simple-firewall
+
+targetNode: test-kubeadm-cluster-1
+
+image:
+  repository: bdorado/simple-firewall
+  tag: latest
+  pullPolicy: Always
+
+env:
+  ALLOWED_PORT: "80" 
+
+net:
+  transportIP: 192.168.0.1/30         # IP en la red entre routers
+  peerIP: 192.168.0.2                 # IP del router opuesto
+  remoteIP: 192.168.200.1/24          # IP en la red con los web-servers y el load-balancer
+  localNet: 192.168.100/24            # Subred a la que acceder a través del túnel

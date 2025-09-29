@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "simple-loadbalancer.fullname" . }}
+  labels:
+    app: {{ include "simple-loadbalancer.name" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "simple-loadbalancer.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "simple-loadbalancer.name" . }}
+      annotations:
+        k8s.v1.cni.cncf.io/networks: |
+          [
+            { "name": "south-net" }
+          ]
+    spec:
+      nodeName: {{ .Values.targetNode }}
+
+      # Esperamos al router y añadimos ruta antes de arrancar HAProxy
+      initContainers:
+        - name: wait-for-router
+          image: alpine:latest
+          command: ['sh', '-c']
+          args:
+            - |
+              apk add --no-cache iproute2;
+              echo "Esperando al router...";
+              while ! getent hosts {{ .Values.routerDNS }}; do
+                echo "DNS no disponible aún...";
+                sleep 2;
+              done;
+              GATEWAY=$(getent hosts {{ .Values.routerDNS }} | awk '{print $1}');
+              echo "Router resuelto en $GATEWAY";
+              ip route add {{ .Values.remoteNetwork }} via $GATEWAY || echo "Fallo al añadir la ruta"
+          securityContext:
+            privileged: true
+
+      containers:
+        - name: haproxy
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /usr/local/etc/haproxy/haproxy.cfg
+              subPath: haproxy.cfg
+
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "simple-loadbalancer.fullname" . }}-config

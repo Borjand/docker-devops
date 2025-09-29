@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "simple-loadbalancer.fullname" . }}-config
+data:
+  haproxy.cfg: |
+    global
+      log stdout format raw local0
+      daemon
+      maxconn 256
+
+    defaults
+      log global
+      mode http
+      timeout connect 5000ms
+      timeout client 50000ms
+      timeout server 50000ms
+
+    frontend http_in
+      bind *:80
+      default_backend web_servers
+
+    backend web_servers
+      balance roundrobin
+      {{- range .Values.haproxy.backends }}
+      server {{ .name }} {{ .host }}:{{ .port }} check
+      {{- end }}

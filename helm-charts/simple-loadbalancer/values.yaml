@@ -1,0 +1,27 @@
+replicaCount: 1
+
+# Nodo específico donde desplegar el load-balancer
+targetNode: test-kubeadm-cluster-1
+
+# Imagen Docker del HAProxy con soporte para configuración externa
+image:
+  repository: bdorado/simple-loadbalancer
+  tag: latest
+  pullPolicy: Always
+
+# Lista de backends que HAProxy va a balancear
+haproxy:
+  backends:
+    - name: ws0
+      host: web-0.web
+      port: 80
+    - name: ws1
+      host: web-1.web
+      port: 80
+    - name: ws2
+      host: web-2.web
+      port: 80
+
+# Nueva configuración para usar el router local
+routerDNS: simple-firewall-0.simple-firewall.default.svc.cluster.local
+remoteNetwork: 10.244.1.0/24

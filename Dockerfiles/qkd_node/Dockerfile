@@ -19,12 +19,12 @@ USER student
 WORKDIR /home/student
 
 # Instala paquetes necesarios para Python y NetworkX
-RUN sudo apt-get update && \
-    sudo apt-get install -y python3 python3-pip && \
-    pip3 install --user "simulaqron==3.0.16"
+#RUN sudo apt-get update && \
+#    sudo apt-get install -y python3 python3-pip && \
+#    pip3 install --user "simulaqron==3.0.16"
 
 # Añade .local/bin/ al PATH
-ENV PATH="/home/student/.local/bin:${PATH}"
+#ENV PATH="/home/student/.local/bin:${PATH}"
 
 # Ejecuta el shell al iniciar el contenedor
 CMD ["/bin/bash"]

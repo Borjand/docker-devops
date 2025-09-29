@@ -1,0 +1,11 @@
+fullnameOverride: simple-client
+
+targetNode: test-kubeadm-cluster-2
+
+image:
+  repository: alpine
+  tag: latest
+  pullPolicy: IfNotPresent
+
+routerDNS: simple-router-local-0.simple-router-local.default.svc.cluster.local
+remoteNetwork: 10.244.0.0/24

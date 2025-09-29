@@ -3,5 +3,21 @@ FROM ubuntu:22.04
 
 # install app dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install \
-    -y sudo nano iproute2 iputils-ping traceroute wget wireshark apache2 lynx ncat strongswan
+    -y sudo nano iproute2 iputils-ping traceroute wget apache2 strongswan \
+    && rm -rf /var/lib/apt/lists/*
 
+# Crea un usuario llamado "student"
+#RUN useradd -m -s /bin/bash student
+
+# Permite que el usuario "student" ejecute comandos con sudo sin contraseña
+#RUN echo "student ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/student && \
+#    chmod 0440 /etc/sudoers.d/student
+
+# Establece al usuario "student" como el usuario por defecto
+#USER student
+
+# Establece el directorio de trabajo en el directorio home del usuario "student"
+#WORKDIR /home/student
+
+# Ejecuta el shell al iniciar el contenedor
+CMD ["/bin/bash"]

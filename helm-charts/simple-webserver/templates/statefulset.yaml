@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.fullnameOverride }}
+  labels:
+    app: {{ .Values.fullnameOverride }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ .Values.fullnameOverride }}
+  selector:
+    matchLabels:
+      app: {{ .Values.fullnameOverride }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.fullnameOverride }}
+      annotations:
+        k8s.v1.cni.cncf.io/networks: '[{ "name": "remote-net" }]'
+    spec:
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      initContainers:
+        - name: setup-ip
+          image: alpine:latest
+          securityContext:
+            privileged: true
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          command: ["sh", "-c"]
+          args:
+            - |
+              apk add --no-cache iproute2;
+              index=$(echo $POD_NAME | grep -oE '[0-9]+$');
+              echo "Soy el pod $POD_NAME con índice $index";
+              IPS=({{- range $ip := .Values.net.remoteIPs }}{{ $ip }} {{- end }});
+              IP=${IPS[$index]};
+              echo "Asignando IP $IP a interfaz net1";
+              ip addr add $IP dev net1;
+              echo "Añadiendo ruta hacia {{ .Values.remoteNetwork }} via {{ .Values.net.gateway }}";
+              ip route add {{ .Values.localNetwork }} via {{ .Values.net.gateway }};
+              ip link set net1 up;
+              echo "Configuración de red completada.";
+              tail -f /dev/null
+
+      containers:
+        - name: web-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http

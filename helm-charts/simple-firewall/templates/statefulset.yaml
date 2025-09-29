@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "simple-firewall.fullname" . }}
+spec:
+  serviceName: {{ include "simple-firewall.fullname" . }}  
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "simple-firewall.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "simple-firewall.name" . }}
+      annotations:
+        k8s.v1.cni.cncf.io/networks: |
+          [
+            { "name": "transport-net", "ips": [ "{{ .Values.net.transportIP }}" ] },
+            { "name": "remote-net", "ips": [ "{{ .Values.net.remoteIP }}" ] }
+          ]
+    spec:
+      nodeName: {{ .Values.targetNode }}
+      containers:
+        - name: firewall
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            privileged: true
+          env:
+            {{- range $key, $val := .Values.env }}
+            - name: {{ $key }}
+              value: "{{ $val }}"
+            {{- end }}
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "[INFO] Añadiendo ruta hacia red local..."
+              ip route add {{ .Values.net.localNet }} via {{ .Values.net.peerIP }} dev net1;
+
+              echo "[INFO] Router simple-firewall en funcionamiento."
+              tail -f /dev/null

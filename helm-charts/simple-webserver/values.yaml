@@ -1,0 +1,30 @@
+# Default values for simple-webserver.
+# This is a YAML-formatted file.
+
+fullnameOverride: web
+
+replicaCount: 3
+
+image:
+  repository: bdorado/simple-webserver
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  name: web
+  port: 80
+
+nodeSelector:
+  kubernetes.io/hostname: test-kubeadm-cluster-1
+
+
+# Subred a la que acceder (la del cliente, vía el router/firewall)
+localNetwork: 192.168.100.0/24
+
+# IPs fijas para cada réplica del StatefulSet en la red remote-net
+net:
+  remoteIPs:
+    - 192.168.200.10/24
+    - 192.168.200.11/24
+    - 192.168.200.12/24
+  gateway: 192.168.200.1  # IP del simple-firewall en remote-net

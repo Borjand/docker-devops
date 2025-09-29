@@ -1,0 +1,57 @@
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: remote-net
+  annotations:
+    net.cidr: "192.168.200.0/24"
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "type": "bridge",
+      "bridge": "br-remote",
+      "ipam": {
+        "type": "static",
+        "ranges": [[{ "subnet": "192.168.200.0/24" }]],
+        "routes": []
+      }
+    }
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: transport-net
+  annotations:
+    net.cidr: "192.168.0.0/30"
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "type": "bridge",
+      "bridge": "br-transport",
+      "ipam": {
+        "type": "static",
+        "ranges": [[{ "subnet": "192.168.0.0/30" }]],
+        "routes": []
+      }
+    }
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: local-net
+  annotations:
+    net.cidr: "192.168.100.0/24"
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "type": "bridge",
+      "bridge": "br-local",
+      "ipam": {
+        "type": "static",
+        "ranges": [[{ "subnet": "192.168.100.0/24" }]],
+        "routes": []
+      }
+    }

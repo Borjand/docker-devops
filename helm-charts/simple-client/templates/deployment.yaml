@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "simple-client.fullname" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "simple-client.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "simple-client.name" . }}
+    spec:
+      nodeName: {{ .Values.targetNode }}
+      initContainers:
+        - name: configure-route
+          image: alpine:latest
+          command: ['sh', '-c']
+          args:
+            - |
+              apk add --no-cache iproute2;
+              echo "Esperando al router...";
+              while ! getent hosts {{ .Values.routerDNS }}; do
+                echo "DNS no disponible aún...";
+                sleep 2;
+              done;
+              GATEWAY=$(getent hosts {{ .Values.routerDNS }} | awk '{print $1}');
+              echo "Router resuelto en $GATEWAY";
+              ip route add {{ .Values.remoteNetwork }} via $GATEWAY || echo "Fallo al añadir la ruta"
+          securityContext:
+            privileged: true
+      containers:
+        - name: client
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["sh", "-c"]
+          args: ["apk add --no-cache curl && sleep 3600"]
+          securityContext:
+            privileged: true
